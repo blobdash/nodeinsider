@@ -1,0 +1,16 @@
+{
+  "name": "nodeinsider",
+  "version": "1.0.0",
+  "description": "A script to replace the broken python khinsider one.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "blobdash",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "commander": "^13.1.0",
+    "sanitize-filename": "^1.6.3"
+  }
+}
