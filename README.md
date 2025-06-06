@@ -1,12 +1,22 @@
 # nodeinsider
 A script to replace the broken python khinsider one.
 
-### How to use
+### Binaries
+
+Pre built binaries are available in the repository's [releases](https://github.com/blobdash/nodeinsider/releases).
+
+### Manual install
+
 This script requires node 18 or higher.
 
 - Clone this repository
 - Install dependencies : `npm i`
-- `node nodeinsider -i <albumid> -o <output folder>`
+
+I recommend using the wrappers at the end of the README if you're going the manual install route.
+
+### How to use
+
+`nodeinsider -i <albumid> -o <output folder>`
 
 Album will be downloaded to `$OUTPUT/$ALBUM_NAME`, like `test/KINGDOM HEARTS Birth by Sleep & 3582 Days Original Soundtrack` for example.
 
@@ -23,7 +33,9 @@ Album will be downloaded to `$OUTPUT/$ALBUM_NAME`, like `test/KINGDOM HEARTS Bir
 
 ### Tired of going to the repo's folder and typing stuff manually?
 
-I suggest you create a wrapper around this; here's an example bash script you can add to your path :
+(this only applies if you went with the manual install route!)
+
+Here's an example bash script you can add to your path :
 
 ```bash
 #!/bin/bash
