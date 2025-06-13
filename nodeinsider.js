@@ -8,6 +8,7 @@ const cheerio = require('cheerio');
 const prefix = "https://downloads.khinsider.com/game-soundtracks/album";
 const songPagePrefix = "https://downloads.khinsider.com";
 const artworkRegex = /(?<=\/)[^\/\?#]+(?=[^\/]*$)/;
+const extRegex = /\.\w{3,4}($|\?)/;
 
 (async () => {
 
@@ -18,11 +19,6 @@ const artworkRegex = /(?<=\/)[^\/\?#]+(?=[^\/]*$)/;
         .option('--dump <file>', 'Dump all download links to the specified file, and skip downloading.')
     program.parse(process.argv);
     const options = program.opts();
-
-    if (!options.output && !options.dump) {
-        console.error('error : you must either specify an output directory or --dump.');
-        process.exit(1);
-    }
 
     console.log(`Fetching songlist...`);
     const initialSonglist = await fetch(`${prefix}/${options.id}`);
@@ -42,6 +38,13 @@ const artworkRegex = /(?<=\/)[^\/\?#]+(?=[^\/]*$)/;
         process.exit(1);
     }
 
+    let outputBase;
+    if(!options.output) {
+        outputBase = './'
+    } else {
+        outputBase = options.output;
+    }
+
     const album = initSonglistDOM('h2').prop('innerText');
     const sanitizedAlbumName = sanitize(album);
     if (album !== sanitizedAlbumName) {
@@ -50,14 +53,14 @@ const artworkRegex = /(?<=\/)[^\/\?#]+(?=[^\/]*$)/;
     console.log(`Album name : ${album}`)
     console.log(`Found ${songlist.length} songs.`);
 
-    if (!options.dump && !fs.existsSync(path.join(options.output, sanitizedAlbumName))) {
-        fs.mkdirSync(path.join(options.output, sanitizedAlbumName), { recursive: true });
+    if (!options.dump && !fs.existsSync(path.join(outputBase, sanitizedAlbumName))) {
+        fs.mkdirSync(path.join(outputBase, sanitizedAlbumName), { recursive: true });
     }
 
     if (!options.disableart) {
         console.log(`Processing artworks...`);
         for (const art of artworks) {
-            const filename = path.join(options.output, sanitizedAlbumName, artworkRegex.exec(art)[0]);
+            const filename = path.join(outputBase, sanitizedAlbumName, artworkRegex.exec(art)[0]);
             if (!fs.existsSync(filename) && !options.dump) await downloadFile(art, filename);
             if (options.dump) fs.appendFileSync(options.dump, `${art}\n`)
         }
@@ -70,12 +73,18 @@ const artworkRegex = /(?<=\/)[^\/\?#]+(?=[^\/]*$)/;
         const resp = await fetch(`${songPagePrefix}${song}`);
         const body = await resp.text();
         const $ = cheerio.load(body);
-        const url = $('#pageContent > p:nth-child(10) > a:nth-child(1)').prop('href');
-        if (options.dump) {
+        let url = $('#pageContent > p:nth-child(10) > a:nth-child(1)').prop('href');
+        if(!url) {
+            console.log('WARN : FLAC is unavailable, falling back to lossy.')
+            url = $('#pageContent > p:nth-child(9) > a:nth-child(1)').prop('href');
+        }
+        if(!url) {
+            console.error("Couldn't find this song's URL; skipping.")
+        } else if (options.dump) {
             fs.appendFileSync(options.dump, `${url}\n`)
         } else {
             const songName = $('#pageContent > p:nth-child(6) > b:nth-child(3)').prop('innerText');
-            const filename = path.join(options.output, sanitizedAlbumName, `${`${progress}`.padStart(2, '0')}. ${songName}.flac`);
+            const filename = path.join(outputBase, sanitizedAlbumName, `${`${progress}`.padStart(2, '0')}. ${songName}${extRegex.exec(url)[0]}`);
             if (fs.existsSync(filename)) {
                 console.log(`(${progress}/${songlist.length}) "${songName}" has already been downloaded, skipping`);
             } else {
