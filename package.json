@@ -1,6 +1,6 @@
 {
   "name": "nodeinsider",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A script to replace the broken python khinsider one.",
   "main": "index.js",
   "scripts": {
